@@ -1,28 +1,52 @@
 // scss-entrypoint.scss
 @charset 'utf-8';
 
-// Set your brand colors
-$purple: #8A4D76;
-$pink: #FA7C91;
-$brown: #757763;
-$beige-light: #D0D1CD;
-$beige-lighter: #EFF0EB;
+$color-back: #DDDDDD;
+$color-bright: #C04848;
+$color-input: #EEEEEE;
+$color-text: #300030;
 
 // Update Bulma's global variables
 // $family-sans-serif: "Nunito", sans-serif;
-$grey-dark: $brown;
-$grey-light: $beige-light;
-$primary: $purple;
-$link: $pink;
+// $grey-dark: $brown;
+// $grey-light: $beige-light;
+// $primary: $purple;
+// $link: $pink;
+
+$input-color: $color-text;
+$input-background-color: $color-input;
+$box-background-color: $color-input;
+
+$title-color: $color-bright;
+
+$primary: $color-back;
+$link: $color-bright;
+$info: $color-bright;
+// $success: $green;
+// $warning: $yellow;
+// $danger: $red;
+$dark: $color-input;
+$text: $color-text;
+
+$footer-background-color: $color-back;
+$body-background-color: $color-back;
+
+
 $widescreen-enabled: false;
 $fullhd-enabled: false;
 
 // Update some of Bulma's component variables
-$footer-background-color: $beige-lighter;
-$body-background-color: $beige-lighter;
+// $footer-background-color: $beige-lighter;
+// $body-background-color: $beige-lighter;
+
 $control-border-width: 2px;
 $input-border-color: transparent;
 $input-shadow: none;
+$box-shadow: none;
+$box-padding: 0.5em 0.75em 0.5em;
+$box-radius: 4px;
+$column-gap: 0.5rem 1.0rem 0.5rem 0;
+
 
 // Import only what you need from Bulma
 @import "node_modules/bulma/sass/utilities/_all";
