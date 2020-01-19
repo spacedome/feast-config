@@ -45,7 +45,11 @@ $input-shadow: none;
 $box-shadow: none;
 $box-padding: 0.5em 0.75em 0.5em;
 $box-radius: 4px;
-$column-gap: 0.5rem 1.0rem 0.5rem 0;
+$column-gap: 0.4rem 0.8rem 0.4rem 0;
+
+
+$body-min-width: 920px;
+$body-overflow-x: "scroll";
 
 
 // Import only what you need from Bulma
@@ -63,4 +67,9 @@ div.container:not(:first-child) {
 
 div.column:last-child {
     padding-right: 0;
+}
+
+img {
+    min-width: 100px;
+    min-height: 100px
 }

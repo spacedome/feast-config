@@ -99,7 +99,7 @@
 
 <main class="section">
 	<div class="container">
-		<div class="columns">
+		<div class="columns is-mobile">
 			<div class="column">
 				<h1 class="title is-1">
 				  {name}
@@ -115,7 +115,7 @@
 				</p>
 			</div>
 			<div class="column is-2">
-				<figure class="image is-square">
+				<figure class="image is-square logo">
 				  <img src="/FEAST.svg" alt="FEAST">
 				</figure>
 			</div>
