@@ -99,18 +99,37 @@
 
 <main class="section">
 	<div class="container">
-		<h1 class="title is-2">
-		  {name}
-		</h1>
-
-		<p class="subtitle is-4">
-		  An interface for generating FEAST parameters
-		</p>
+		<div class="columns">
+			<div class="column">
+				<h1 class="title is-1">
+				  {name}
+				</h1>
+				<p class="subtitle is-4">
+				  An interface for generating FEAST parameters
+				</p>
+				<p class="content is-marginless">
+					See the <a href="http://www.ecs.umass.edu/~polizzi/feast/">homepage</a> of the FEAST eigenvalue solver for details and documentation.
+				</p>
+				<p class="content">
+					Configure FEAST interface before input parameters.
+				</p>
+			</div>
+			<div class="column is-2">
+				<figure class="image is-square">
+				  <img src="/FEAST.svg" alt="FEAST">
+				</figure>
+			</div>
+		</div>
+		<hr/>
 	</div>
 
-	<br/>
+
 
 	<div class="container">
+
+		<h2 class="title is-4">
+			FEAST Interfaces
+		</h2>
 
 		<div class="columns is-mobile"> <!-- version -->
 			<div class="column is-one-quarter">
@@ -197,8 +216,6 @@
 		</div>
 
 	</div>
-
-	<br/>
 
 	<div class="container">
 
