@@ -2,12 +2,17 @@
 
 	export let name;
 
+	import InterfaceSelect from './InterfaceSelect.svelte';
+	import FPMSelect from './FPMSelect.svelte';
+	import FPMInteger from './FPMInteger.svelte';
+
 	let params = {
-		version:	3,
-		problem_type: 's', // s: symmetric, h: hermitian, g: general
+		version:	4,
+		symmetry: 's', // s: symmetric, h: hermitian, g: general
+		prob_type: 'ev', // ev: sstandard, gv: generalized, pev: polynomial
 		data_type: 'd', // s: single, d: double, c: comp single, z: comp double
 		storage_format: 'dense', // dense, sparse, banded, rci
-		generalized: false,
+		expert: false, // false (default), true (use custom contor)
 	}
 
 	let fpm_default = { //given values are feastinit defaults
@@ -30,18 +35,25 @@
 	let feast_arg = "\{List\}, fpm, epsout, loop, \{List-I\}, M0, E, X, M, res, info";
 
 	function is_hermitian(parameters) {
-		return (parameters.problem_type === 's' || parameters.problem_type === 'h');
+		return (parameters.symmetry === 's' || parameters.symmetry === 'h');
 	}
 
 	function is_single_prec(parameters) {
 		return (parameters.data_type === 's' || parameters.data_type === 'c');
 	}
 
+	function checkHermitian() {
+		if (params.data_type === 'd') {
+			params.symmetry = 's';
+		}
+	}
+
 	function feast_call(parameters) {
 		let T = 'd';
 		let Y = 's';
 		let F = 'f';
-		let G = (parameters.generalized ? 'gv' : 'ev' );
+		let P = 'ev';
+		let X = (parameters.expert ? 'x' : '' );
 		switch (parameters.data_type) {
 			case 's': // single
 			case 'd': // double
@@ -52,11 +64,20 @@
 			default:
 				throw 'Error';
 		}
-		switch (parameters.problem_type) {
+		switch (parameters.symmetry) {
 			case 's': // symmetric
 			case 'h': // hermitian
 			case 'g': // general
-				Y = parameters.problem_type;
+				Y = parameters.symmetry;
+				break;
+			default:
+				throw 'Error';
+		}
+		switch (parameters.prob_type) {
+			case 'ev': // symmetric
+			case 'gv': // hermitian
+			case 'pev': // general
+				P = parameters.prob_type;
 				break;
 			default:
 				throw 'Error';
@@ -78,7 +99,7 @@
 			default:
 				throw 'Error';
 		}
-		return T + "feast_" + Y + F + G;
+		return T + "feast_" + Y + F + P + X;
 	}
 
 	function input_params(feastparams, feastparams_default) {
@@ -112,6 +133,7 @@
 				</p>
 				<p class="content">
 					Configure FEAST interface before input parameters.
+					Currently only supports version 4.0.
 				</p>
 			</div>
 			<div class="column is-2">
@@ -128,86 +150,59 @@
 	<div class="container">
 
 		<h2 class="title is-4">
-			FEAST Interfaces
+			FEAST Interfaces {params.symmetry}
 		</h2>
 
-		<div class="columns is-mobile"> <!-- version -->
-			<div class="column is-one-quarter">
-				<div class="field">
-					<p class="control is-expanded">
-						<span class="select is-fullwidth">
-							<select bind:value="{params.version}">
-								<!-- <option value={4}>FEAST 4.0</option> -->
-								<option value={3}>FEAST 3.0</option>
-								<option value={2}>FEAST 2.1</option>
-							</select>
-						</span>
-					</p>
-				</div>
-			</div>
-			<div class="column">
-				<p class="box">FEAST version. Parameters are forward compatible. v2.1 is used in MKL</p>
-			</div>
-		</div>
 
-		<div class="columns is-mobile"> <!-- data type -->
-			<div class="column is-one-quarter">
-				<div class="field">
-					<p class="control is-expanded">
-						<span class="select is-fullwidth">
-							<select bind:value="{params.data_type}">
-								<option value="{'d'}">Double Precision (d)</option>
-								<option value="{'s'}">Single Precision (s)</option>
-								<option value="{'z'}">Complex Double (z)</option>
-								<option value="{'c'}">Complex Single (c)</option>
-							</select>
-						</span>
-					</p>
-				</div>
-			</div>
-			<div class="column">
-				<p class="box">Matrix data type</p>
-			</div>
-		</div>
+		<!-- version -->
+		<!-- <InterfaceSelect bind:value={params.version}
+		 description="FEAST version. Parameters are forward compatible. v2.1 is used in MKL">
+			<option value={4}>FEAST 4.0</option>
+			<option value={2}>FEAST 2.1</option>
+		</InterfaceSelect> -->
 
-		<div class="columns is-mobile"> <!-- problem type -->
-			<div class="column is-one-quarter">
-				<div class="field">
-					<p class="control is-expanded">
-						<span class="select is-fullwidth">
-							<select bind:value="{params.problem_type}">
-								<option value="{'s'}">Symmetric (s)</option>
-								<option value="{'h'}">Hermitian (h)</option>
-								<option value="{'g'}">General (g)</option>
-							</select>
-						</span>
-					</p>
-				</div>
-			</div>
-			<div class="column">
-				<p class="box">Type/symmetry of problem</p>
-			</div>
-		</div>
+		 <!-- data type -->
+		<InterfaceSelect bind:value={params.data_type} on:change={checkHermitian}
+		 description="Matrix data type">
+			<option value="{'d'}">Double Precision (d)</option>
+			<!-- <option value="{'s'}">Single Precision (s)</option> -->
+			<option value="{'z'}">Complex Double (z)</option>
+			<!-- <option value="{'c'}">Complex Single (c)</option> -->
+		</InterfaceSelect>
 
-		<div class="columns is-mobile"> <!-- storage format -->
-			<div class="column is-one-quarter">
-				<div class="field">
-					<p class="control is-expanded">
-						<span class="select is-fullwidth">
-							<select bind:value="{params.storage_format}">
-								<option value="{'dense'}">Dense</option>
-								<option value="{'banded'}">Banded</option>
-								<option value="{'sparse'}">Sparse</option>
-								<option value="{'rci'}">RCI</option>
-							</select>
-						</span>
-					</p>
-				</div>
-			</div>
-			<div class="column">
-				<p class="box">Matrix storage format or Reverse Communication Interface (RCI)</p>
-			</div>
-		</div>
+		<!-- problem symmetry -->
+		<InterfaceSelect bind:value={params.symmetry}
+		 description="Symmetry of problem">
+			<option value="{'s'}">Symmetric (s)</option>
+			{#if params.data_type === 'z'}
+				<option value="{'h'}">Hermitian (h)</option>
+			{/if}
+			<option value="{'g'}">General (g)</option>
+		</InterfaceSelect>
+
+		<!-- problem type -->
+		<InterfaceSelect bind:value={params.prob_type}
+		 description="Form of eigenvalue problem">
+			<option value="{'ev'}">Standard (ev)</option>
+			<option value="{'gv'}">Generalized (gv)</option>
+			<option value="{'pev'}">Polynomial (pev)</option>
+		</InterfaceSelect>
+
+		<!-- storage format -->
+		<InterfaceSelect bind:value={params.storage_format}
+		 description="Matrix storage format or Reverse Communication Interface (RCI)">
+			<option value="{'dense'}">Dense</option>
+			<option value="{'banded'}">Banded</option>
+			<option value="{'sparse'}">Sparse</option>
+			<option value="{'rci'}">RCI</option>
+		</InterfaceSelect>
+
+		<!-- version -->
+		<InterfaceSelect bind:value={params.expert}
+		 description="Use expert routine (for manually specifying a custom contour)">
+			<option value={false}>No</option>
+			<option value={true}>Yes</option>
+		</InterfaceSelect>
 
 		<div class="columns">
 			<div class="column control">
@@ -223,253 +218,100 @@
 			FEAST Input Parameters (<span class="is-family-code">fpm</span>)
 		</h2>
 
-		<div class="columns is-mobile"> <!-- fpm 1 -->
-			<div class="column is-2">
-				<div class="field">
-					<p class="control is-expanded">
-						<span class="select is-fullwidth">
-							<select bind:value="{fpm[1]}">
-								<option value={0}>No</option>
-								<option value={1}>Yes</option>
-							</select>
-						</span>
-					</p>
-				</div>
-			</div>
-			<div class="column is-small is-2">
-				<p class="box is-family-code has-text-centered is-size-6">fpm(1) = {fpm[1]}</p>
-			</div>
-			<div class="column">
-				<p class="box">Print runtime comments on screen</p>
-			</div>
-		</div>
+		<!-- fpm 1 -->
+		<FPMSelect bind:value={fpm[1]} fpmIndex={1} 
+		 description="Print runtime comments on screen">
+			<option value={0}>No</option>
+			<option value={1}>Yes</option>		
+		</FPMSelect>
 
+
+		<!-- fpm 2 -->
 		{#if is_hermitian(params)}
-			<div class="columns is-mobile"> <!-- fpm 2 -->
-				<div class="column is-2">
-					{#if fpm[16]===1}
-						<div class="field">
-							<div class="control">
-								<input type=number class="input" bind:value="{fpm[2]}" min=1 max=65536>
-							</div>
-						</div>
-					{:else}
-						<div class="field">
-							<p class="control is-expanded">
-								<span class="select is-fullwidth">
-									<select bind:value="{fpm[2]}">
-										{#each [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,24,32,40,48,56] as points}
-										<option value={points}>{points}</option>
-										{/each}
-									</select>
-								</span>
-							</p>
-						</div>
-					{/if}
-				</div>
-				<div class="column is-small is-2">
-					<p class="box is-family-code has-text-centered is-size-6">fpm(2) = {fpm[2]}</p>
-				</div>
-				<div class="column">
-					<p class="box"> Number of contour points (Hermitian only, half contour)</p>
-				</div>
-			</div>
+			{#if fpm[16]===1}
+				<FPMInteger bind:value={fpm[2]} fpmIndex={2} min=1
+					description="Number of contour points (Hermitian only, half contour)"/>
+			{:else}
+				<FPMSelect bind:value={fpm[2]} fpmIndex={2}
+					description="Number of contour points (Hermitian only, half contour)">
+					{#each [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,24,32,40,48,56] as points}
+					<option value={points}>{points}</option>
+					{/each}
+				</FPMSelect>
+			{/if}
 		{/if}
 
+		<!-- fpm 3 -->
 		{#if !is_single_prec(params)}
-		<div class="columns is-mobile"> <!-- fpm 3 -->
-			<div class="column is-2">
-				<div class="field">
-					<div class="control">
-						<input type=number class="input" bind:value="{fpm[3]}">
-					</div>
-				</div>
-			</div>
-			<div class="column is-small is-2">
-				<p class="box is-family-code has-text-centered is-size-6">fpm(3) = {fpm[3]}</p>
-			</div>
-			<div class="column">
-				<p class="box">Stopping convergence criteria for double precision (&epsilon = <var>10<sup>-<i>x</i></sup></var>)</p>
-			</div>
-		</div>
+			<FPMInteger bind:value={fpm[3]} fpmIndex={3} 
+		 description="Stopping convergence criteria for double precision (&epsilon = <var>10<sup>-<i>x</i></sup></var>)"/>
 		{/if}
 
-		<div class="columns is-mobile"> <!-- fpm 4 -->
-			<div class="column is-2">
-				<div class="field">
-					<div class="control">
-						<input type=number class="input" bind:value="{fpm[4]}" min=0>
-					</div>
-				</div>
-			</div>
-			<div class="column is-small is-2">
-				<p class="box is-family-code has-text-centered is-size-6">fpm(4) = {fpm[4]}</p>
-			</div>
-			<div class="column">
-				<p class="box">Maximum number of FEAT refinement iterations</p>
-			</div>
-		</div>
+		<!-- fpm 4 -->
+		<FPMInteger bind:value={fpm[4]} fpmIndex={4} min={0}
+		 description="Maximum number of FEAST refinement iterations"/>
 
-		<div class="columns is-mobile"> <!-- fpm 5 -->
-			<div class="column is-2">
-				<div class="field">
-					<p class="control is-expanded">
-						<span class="select is-fullwidth">
-							<select bind:value="{fpm[5]}">
-								<option value={0}>No</option>
-								<option value={1}>Yes</option>
-							</select>
-						</span>
-					</p>
-				</div>
-			</div>
-			<div class="column is-small is-2">
-				<p class="box is-family-code has-text-centered is-size-6">fpm(5) = {fpm[5]}</p>
-			</div>
-			<div class="column">
-				<p class="box">Provide initial guess subspace</p>
-			</div>
-		</div>
+		<!-- fpm 5 -->
+		<FPMSelect bind:value={fpm[5]} fpmIndex={5} 
+		 description="Provide initial guess subspace">
+			<option value={0}>No</option>
+			<option value={1}>Yes</option>		
+		</FPMSelect>
 
-		<div class="columns is-mobile"> <!-- fpm 6 -->
-			<div class="column is-2">
-				<div class="field">
-					<p class="control is-expanded">
-						<span class="select is-fullwidth">
-							<select bind:value="{fpm[6]}">
-								<option value={1}>Relative Residual</option>
-								<option value={0}>Relative Trace</option>
-							</select>
-						</span>
-					</p>
-				</div>
-			</div>
-			<div class="column is-small is-2">
-				<p class="box is-family-code has-text-centered is-size-6">fpm(6) = {fpm[6]}</p>
-			</div>
-			<div class="column">
-				<p class="box">Convergence criteria for eigenpairs in the search interval</p>
-			</div>
-		</div>
+		<!-- fpm 6 -->
+		<FPMSelect bind:value={fpm[6]} fpmIndex={6} 
+		 description="Convergence criteria for eigenpairs in the search interval">
+			<option value={1}>Relative Residual</option>
+			<option value={0}>Relative Trace</option>	
+		</FPMSelect>
 
+		<!-- fpm 7 -->
 		{#if is_single_prec(params)}
-		<div class="columns is-mobile"> <!-- fpm 7 -->
-			<div class="column is-2">
-				<div class="field">
-					<div class="control">
-						<input type=number class="input" bind:value="{fpm[7]}">
-					</div>
-				</div>
-			</div>
-			<div class="column is-small is-2">
-				<p class="box is-family-code has-text-centered is-size-6">fpm(7) = {fpm[7]}</p>
-			</div>
-			<div class="column">
-				<p class="box">Stopping convergence criteria for single precision (&epsilon = <var>10<sup>-<i>x</i></sup></var>)</p>
-			</div>
-		</div>
+		<FPMInteger bind:value={fpm[7]} fpmIndex={7}
+		 description="Stopping convergence criteria for single precision (&epsilon = <var>10<sup>-<i>x</i></sup></var>)"/>
 		{/if}
 
+		<!-- fpm 8 -->
+		
 		{#if !is_hermitian(params)}
-			<div class="columns is-mobile"> <!-- fpm 8 -->
-				<div class="column is-2">
-					{#if fpm[17]===1}
-						<div class="field">
-							<div class="control">
-								<input type=number class="input" bind:value="{fpm[8]}" min=2 max=65536>
-							</div>
-						</div>
-					{:else}
-						<div class="field">
-							<p class="control is-expanded">
-								<span class="select is-fullwidth">
-									<select bind:value="{fpm[2]}">
-										{#each [2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,48,64,80,96,112] as points}
-										<option value={points}>{points}</option>
-										{/each}
-									</select>
-								</span>
-							</p>
-						</div>
-					{/if}
-				</div>
-				<div class="column is-small is-2">
-					<p class="box is-family-code has-text-centered is-size-6">fpm(8) = {fpm[8]}</p>
-				</div>
-				<div class="column">
-					<p class="box"> Number of contour points (non-Hermitian only, full contour)</p>
-				</div>
-			</div>
+			{#if fpm[17]===1}
+				<FPMInteger bind:value={fpm[8]} fpmIndex={8} min=2
+					description="Number of contour points (non-Hermitian only, full contour)"/>
+			{:else}
+				<FPMSelect bind:value={fpm[8]} fpmIndex={8}
+					description="Number of contour points (non-Hermitian only, full contour)">
+					{#each [2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,48,64,80,96,112] as points}
+					<option value={points}>{points}</option>
+					{/each}
+				</FPMSelect>
+			{/if}
 		{/if}
-
+		<!-- fpm 10 -->
 		{#if !(params.storage_format === 'rci')}
-		<div class="columns is-mobile"> <!-- fpm 10 -->
-			<div class="column is-2">
-				<div class="field">
-					<p class="control is-expanded">
-						<span class="select is-fullwidth">
-							<select bind:value="{fpm[10]}">
-								<option value={0}>No</option>
-								<option value={1}>Yes</option>
-							</select>
-						</span>
-					</p>
-				</div>
-			</div>
-			<div class="column is-small is-2">
-				<p class="box is-family-code has-text-centered is-size-6">fpm(10) = {fpm[10]}</p>
-			</div>
-			<div class="column">
-				<p class="box">Store factorizations with the predefined interfaces</p>
-			</div>
-		</div>
+			<FPMSelect bind:value={fpm[10]} fpmIndex={10} 
+			description="Store factorizations with the predefined interfaces">
+				<option value={0}>No</option>
+				<option value={1}>Yes</option>
+			</FPMSelect>
 		{/if}
 
+		<!-- fpm 16 -->
 		{#if is_hermitian(params)}
-			<div class="columns is-mobile"> <!-- fpm 16 -->
-				<div class="column is-2">
-					<div class="field">
-						<p class="control is-expanded">
-							<span class="select is-fullwidth">
-								<select bind:value="{fpm[16]}">
-									<option value={0}>Gauss</option>
-									<option value={1}>Trapezoidal</option>
-									<option value={2}>Zolotarev</option>
-								</select>
-							</span>
-						</p>
-					</div>
-				</div>
-				<div class="column is-small is-2">
-					<p class="box is-family-code has-text-centered is-size-6">fpm(16) = {fpm[16]}</p>
-				</div>
-				<div class="column">
-					<p class="box"> Integration quadrature type (Hermitian only, half contour)</p>
-				</div>
-			</div>
+			<FPMSelect bind:value={fpm[16]} fpmIndex={16} 
+			description="Integration quadrature type (Hermitian only, half contour)">
+				<option value={0}>Gauss</option>
+				<option value={1}>Trapezoidal</option>
+				<option value={2}>Zolotarev</option>
+			</FPMSelect>
 		{/if}
 
+		<!-- fpm 17 -->
 		{#if !is_hermitian(params)}
-			<div class="columns is-mobile"> <!-- fpm 17 -->
-				<div class="column is-2">
-					<div class="field">
-						<p class="control is-expanded">
-							<span class="select is-fullwidth">
-								<select bind:value="{fpm[17]}">
-									<option value={0}>Gauss</option>
-									<option value={1}>Trapezoidal</option>
-								</select>
-							</span>
-						</p>
-					</div>
-				</div>
-				<div class="column is-small is-2">
-					<p class="box is-family-code has-text-centered is-size-6">fpm(17) = {fpm[17]}</p>
-				</div>
-				<div class="column">
-					<p class="box"> Integration quadrature type (non-Hermitian only, full contour)</p>
-				</div>
-			</div>
+			<FPMSelect bind:value={fpm[17]} fpmIndex={17} 
+			description="Integration quadrature type (non-Hermitian only, full contour)">
+				<option value={0}>Gauss</option>
+				<option value={1}>Trapezoidal</option>
+			</FPMSelect>
 		{/if}
 
 		<div class="columns">
