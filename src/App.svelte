@@ -13,7 +13,13 @@
 		data_type: 'd', // s: single, d: double, c: comp single, z: comp double
 		storage_format: 'dense', // dense, sparse, banded, rci
 		expert: false, // false (default), true (use custom contor)
+		algorithm: 'standard', // standard, inexact, or parallel FEAST, or both
 	}
+
+	// symm is dependant on the data type - cannot be real hermitian only real symmetic
+	$: params.symmetry = (params.symmetry === 'h' && params.data_type === 'd') ? 's' : params.symmetry;
+	// there is no banded polynomial solver
+	$: params.prob_type = (params.prob_type === 'pev' && params.storage_format === 'banded') ? 'ev' : params.prob_type;
 
 	let fpm_default = { //given values are feastinit defaults
 		1: 0,  // Print runtime comments on screen, 0: no, 1: yes
@@ -42,17 +48,13 @@
 		return (parameters.data_type === 's' || parameters.data_type === 'c');
 	}
 
-	function checkHermitian() {
-		if (params.data_type === 'd') {
-			params.symmetry = 's';
-		}
-	}
-
 	function feast_call(parameters) {
 		let T = 'd';
 		let Y = 's';
 		let F = 'f';
 		let P = 'ev';
+		let PFEAST = (parameters.algorithm === 'parallel' || parameters.algorithm === 'both' ? 'p' : '');
+		let IFEAST = (parameters.algorithm === 'inexact' || parameters.algorithm === 'both' ? 'i' : '');
 		let X = (parameters.expert ? 'x' : '' );
 		switch (parameters.data_type) {
 			case 's': // single
@@ -88,7 +90,6 @@
 				break;
 			case 'rci':
 				F = 'rci';
-				G = '';
 				break;
 			case 'banded':
 				F = 'b';
@@ -99,7 +100,7 @@
 			default:
 				throw 'Error';
 		}
-		return T + "feast_" + Y + F + P + X;
+		return PFEAST + T + IFEAST + "feast_" + Y + F + P + X;
 	}
 
 	function input_params(feastparams, feastparams_default) {
@@ -150,7 +151,7 @@
 	<div class="container">
 
 		<h2 class="title is-4">
-			FEAST Interfaces {params.symmetry}
+			FEAST Interfaces
 		</h2>
 
 
@@ -162,7 +163,7 @@
 		</InterfaceSelect> -->
 
 		 <!-- data type -->
-		<InterfaceSelect bind:value={params.data_type} on:change={checkHermitian}
+		<InterfaceSelect bind:value={params.data_type}
 		 description="Matrix data type">
 			<option value="{'d'}">Double Precision (d)</option>
 			<!-- <option value="{'s'}">Single Precision (s)</option> -->
@@ -174,9 +175,7 @@
 		<InterfaceSelect bind:value={params.symmetry}
 		 description="Symmetry of problem">
 			<option value="{'s'}">Symmetric (s)</option>
-			{#if params.data_type === 'z'}
-				<option value="{'h'}">Hermitian (h)</option>
-			{/if}
+			<option value="{'h'}" disabled={params.data_type === 'd' || null}>Hermitian (h)</option>
 			<option value="{'g'}">General (g)</option>
 		</InterfaceSelect>
 
@@ -185,7 +184,7 @@
 		 description="Form of eigenvalue problem">
 			<option value="{'ev'}">Standard (ev)</option>
 			<option value="{'gv'}">Generalized (gv)</option>
-			<option value="{'pev'}">Polynomial (pev)</option>
+			<option value="{'pev'}" disabled={params.storage_format === 'banded' || null}>Polynomial (pev)</option>
 		</InterfaceSelect>
 
 		<!-- storage format -->
@@ -195,6 +194,16 @@
 			<option value="{'banded'}">Banded</option>
 			<option value="{'sparse'}">Sparse</option>
 			<option value="{'rci'}">RCI</option>
+		</InterfaceSelect>
+
+		<!-- algorithm type -->
+		<InterfaceSelect bind:value={params.algorithm}
+		 disabled={!(params.storage_format === 'sparse') || null}
+		 description="FEAST algorithm extension, inexact (IFEAST), or parallel (PFEAST) - sparse only">
+			<option value="{'standard'}">FEAST</option>
+			<option value="{'inexact'}">IFEAST</option>
+			<option value="{'parallel'}">PFEAST</option>
+			<option value="{'both'}">P/IFEAST</option>
 		</InterfaceSelect>
 
 		<!-- version -->
