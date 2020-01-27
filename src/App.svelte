@@ -21,7 +21,7 @@
 	// there is no banded polynomial solver
 	$: params.prob_type = (params.prob_type === 'pev' && params.storage_format === 'banded') ? 'ev' : params.prob_type;
 
-	let fpm_default = { //given values are feastinit defaults
+	const fpm_init = { //given values are feastinit defaults
 		1: 0,  // Print runtime comments on screen, 0: no, 1: yes
 		2: 8,  // number contour points for Hermitian (half-contour), if fpm(16=0,2) can be {1 to 20, 24, 32, 40, 48, 56}, if fpm(16)=1 all values permitted
 		3: 12, // stopping convergence criteria for double prec (10^(-x))
@@ -30,18 +30,21 @@
 		6: 1,  // conv critera for eigpair in search interval, 0: rel err on trace epsout, 1: rel residual max(res)
 		7: 5,  // stopping convergence criteria for single prec (10^(-x))
 		8: 16, // number contour points for non-Hermitian (full-contour), if fpm(17)=0 can be {2 to 40, 48, 64, 80, 96, 112}, if fpm(17)=1 all values permitted
-		9: -1, // user defined MPI communicator (?)
-		10: 0, // store factorizations with predefined interfaces 0: no, 1 : yes
+		9: "MPI_COMM_WORLD", // user defined MPI communicator
+		10: 1, // store factorizations with predefined interfaces 0: no, 1 : yes
 		16: 0, // hermitian integration type, 0: gauss, 1:trapezoid, 2: zolotarev
 		17: 1, // non-hermitian integration type, 0: gauss, 1:trapezoid
 	}
 
-	let fpm = JSON.parse(JSON.stringify(fpm_default)); // deep clone
-
-	let feast_arg = "\{List\}, fpm, epsout, loop, \{List-I\}, M0, E, X, M, res, info";
+	let fpm = JSON.parse(JSON.stringify(fpm_init)); // deep clone
+	let fpm_default = JSON.parse(JSON.stringify(fpm_init)); // deep clone
 
 	function is_hermitian(parameters) {
 		return (parameters.symmetry === 's' || parameters.symmetry === 'h');
+	}
+
+	function is_real(parameters) {
+		return (parameters.data_type === 'd' && parameters.symmetry === 's') || (parameters.data_type === 'z' && parameters.symmetry === 'h');
 	}
 
 	function is_single_prec(parameters) {
@@ -90,6 +93,7 @@
 				break;
 			case 'rci':
 				F = 'rci';
+				P = '';
 				break;
 			case 'banded':
 				F = 'b';
@@ -103,13 +107,57 @@
 		return PFEAST + T + IFEAST + "feast_" + Y + F + P + X;
 	}
 
+	function feast_arguments(parameters) {
+		let list = "{List}";
+		let listi = "{List-I}";
+		let X = (parameters.expert ? ",Zne,Wne" : "");
+		listi = (!is_real(parameters) || parameters.prob_type === 'pev')  ? "Emid,r" : "Emin,Emax";
+		if (parameters.storage_format === 'rci') {
+			if (parameters.prob_type === 'pev') {
+				list = "ijob,dmax,N,Ze,zwork1,zwork2,zAq,zBq";
+			} else if (parameters.data_type === 'd' && parameters.symmetry === 's') {
+				list = "ijob,N,Ze,work1,zwork2,Aq,Bq";
+			} else {
+				list = "ijob,N,Ze,zwork1,zwork2,zAq,zBq";
+			}
+		} else if (parameters.storage_format === 'dense') {
+			list = "N,A,LDA";
+			if (parameters.prob_type === 'pev') {
+				list = "dmax," + list;
+			}
+			if (!(parameters.symmetry === 'g')) {
+				list = "UPLO," + list;
+			}
+			list += (parameters.prob_type === 'gv') ? ",B,LDB" : "";
+		} else if (parameters.storage_format === 'banded') { 
+			if (parameters.symmetry === 'g') {
+				list = "N,kla,kua,A,LDA";
+				list += (parameters.prob_type === 'gv') ? ",klb,kub,B,LDB" : "";
+			} else {
+				list = "UPLO,N,kla,A,LDA";
+				list += (parameters.prob_type === 'gv') ? ",klb,B,LDB" : "";
+			}
+		} else if (parameters.storage_format === 'sparse') { 
+			list = "N,A,IA,JA";
+			if (parameters.prob_type === 'pev') {
+				list = "dmax," + list;
+			}
+			if (!(parameters.symmetry === 'g')) {
+				list = "UPLO," + list;
+			}
+			list += (parameters.prob_type === 'gv') ? ",B,IB,JB" : "";
+		}
+		
+		return list + ",fpm,epsout,loop," + listi + ",M0,E,X,M,res,info" + X; 
+	}
+
 	function input_params(feastparams, feastparams_default) {
 		let fortran = "integer, dimension(64) :: fpm\ncall feastinit(fpm)\n";
 		let count = 2;
 		for (let key in feastparams) {
 		  if (!(feastparams[key] === feastparams_default[key])) {
 				fortran += "fpm(" + key + ") = " + feastparams[key] + "\n";
-				count +=1
+				count +=1;
 			}
 		}
 		return {count: count, text: fortran};
@@ -215,7 +263,7 @@
 
 		<div class="columns">
 			<div class="column control">
-	  		<textarea class="textarea has-fixed-size is-family-code" rows="1" readonly>{feast_call(params)}</textarea>
+	  		<textarea class="textarea has-fixed-size is-family-code" rows="1" readonly>{feast_call(params)}({feast_arguments(params)})</textarea>
 			</div>
 		</div>
 
@@ -250,9 +298,9 @@
 			{/if}
 		{/if}
 
-		<!-- fpm 3 -->
+		<!-- fpm 3  -->
 		{#if !is_single_prec(params)}
-			<FPMInteger bind:value={fpm[3]} fpmIndex={3} 
+			<FPMInteger bind:value={fpm[3]} fpmIndex={3} min=0 max=16
 		 description="Stopping convergence criteria for double precision (&epsilon = <var>10<sup>-<i>x</i></sup></var>)"/>
 		{/if}
 
@@ -274,10 +322,10 @@
 			<option value={0}>Relative Trace</option>	
 		</FPMSelect>
 
-		<!-- fpm 7 -->
+		<!-- fpm 7 DEPRECIATED IN 4.0 -->
 		{#if is_single_prec(params)}
 		<FPMInteger bind:value={fpm[7]} fpmIndex={7}
-		 description="Stopping convergence criteria for single precision (&epsilon = <var>10<sup>-<i>x</i></sup></var>)"/>
+		 description="Stopping convergence criteria for single precision (&epsilon = <var>10<sup>-<i>x</i></sup></var>) - depreciated in 4.0"/>
 		{/if}
 
 		<!-- fpm 8 -->
@@ -295,33 +343,38 @@
 				</FPMSelect>
 			{/if}
 		{/if}
+
+		<!-- fpm 9 -->
+		<FPMSelect bind:value={fpm[9]} fpmIndex={9} nonum={true}
+		description="Used to set user defined MPI communicator">
+			<option value={'MPI_COMM_WORLD'}>MPI_COMM_WORLD</option>
+			<option value={'USER_DEFINED'}>USER_DEFINED</option>
+		</FPMSelect>
+
 		<!-- fpm 10 -->
-		{#if !(params.storage_format === 'rci')}
-			<FPMSelect bind:value={fpm[10]} fpmIndex={10} 
-			description="Store factorizations with the predefined interfaces">
-				<option value={0}>No</option>
-				<option value={1}>Yes</option>
-			</FPMSelect>
-		{/if}
+		<FPMSelect bind:value={fpm[10]} fpmIndex={10} 
+		disabled={params.storage_format === 'rci' || null}
+		description="Store factorizations with the predefined interfaces">
+			<option value={0}>No</option>
+			<option value={1}>Yes</option>
+		</FPMSelect>
 
 		<!-- fpm 16 -->
-		{#if is_hermitian(params)}
-			<FPMSelect bind:value={fpm[16]} fpmIndex={16} 
-			description="Integration quadrature type (Hermitian only, half contour)">
-				<option value={0}>Gauss</option>
-				<option value={1}>Trapezoidal</option>
-				<option value={2}>Zolotarev</option>
-			</FPMSelect>
-		{/if}
+		<FPMSelect bind:value={fpm[16]} fpmIndex={16} 
+		description="Integration quadrature type (Zolotarev for Hermitian only)">
+			<option value={0}>Gauss</option>
+			<option value={1}>Trapezoidal</option>
+			<option value={2} disabled={!is_real(params) || null}>Zolotarev</option>
+		</FPMSelect>
 
-		<!-- fpm 17 -->
-		{#if !is_hermitian(params)}
+		<!-- fpm 17 DEPRECIATED IN 4.0 -->
+		<!-- {#if !is_hermitian(params)}
 			<FPMSelect bind:value={fpm[17]} fpmIndex={17} 
-			description="Integration quadrature type (non-Hermitian only, full contour)">
+			description="Integration quadrature type (non-Hermitian only, full contour) DEPRECIATED IN 4.0">
 				<option value={0}>Gauss</option>
 				<option value={1}>Trapezoidal</option>
 			</FPMSelect>
-		{/if}
+		{/if} -->
 
 		<div class="columns">
 			<div class="column control">
