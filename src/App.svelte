@@ -3,6 +3,7 @@
 	export let name;
 
 	import InterfaceSelect from './InterfaceSelect.svelte';
+	import InterfaceTable from './InterfaceTable.svelte';
 	import FPMSelect from './FPMSelect.svelte';
 	import FPMInteger from './FPMInteger.svelte';
 
@@ -44,7 +45,11 @@
 	}
 
 	function is_real(parameters) {
-		return (parameters.data_type === 'd' && parameters.symmetry === 's') || (parameters.data_type === 'z' && parameters.symmetry === 'h');
+		if (parameters.prob_type === 'pev') {
+			return false
+		} else {
+			return (parameters.data_type === 'd' && parameters.symmetry === 's') || (parameters.data_type === 'z' && parameters.symmetry === 'h');
+		}
 	}
 
 	function is_single_prec(parameters) {
@@ -266,6 +271,8 @@
 	  		<textarea class="textarea has-fixed-size is-family-code" rows="1" readonly>{feast_call(params)}({feast_arguments(params)})</textarea>
 			</div>
 		</div>
+
+		<InterfaceTable dataType={params.data_type} real={is_real(params)} probType={params.prob_type} expert={params.expert}/>
 
 	</div>
 
