@@ -10,7 +10,7 @@
         <div class="field">
             <p class="control is-expanded">
                 <span class={"select is-fullwidth " + state} >
-                    <select bind:value={value} disabled={disabled}>
+                    <select bind:value={value} disabled={disabled} on:change>
                         <slot></slot>
                     </select>
                 </span>
