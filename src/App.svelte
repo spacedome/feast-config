@@ -7,6 +7,8 @@
 	import FPMSelect from './FPMSelect.svelte';
 	import FPMInteger from './FPMInteger.svelte';
 
+	import { slide } from 'svelte/transition';
+
 	let params = {
 		version:	4,
 		symmetry: 's', // s: symmetric, h: hermitian, g: general
@@ -52,6 +54,10 @@
 
 	let fpm = JSON.parse(JSON.stringify(fpm_init)); // deep clone
 
+	let runtime_visable = false;
+	let contour_visable = false;
+	let driver_visable  = false;
+
 	// // just to "trick" svelte compiler into not making variables depend on themselves
 	// function set_fpm(x, v) {
 	// 	fpm[x] = v;
@@ -92,7 +98,7 @@
 	function fpm_set_default_fpm(p) {
 		switch (p) {
 			case 2:
-				if (is_ifeast()) {
+				if (is_ifeast(params)) {
 					fpm[2] = 4;
 				} else if (fpm[14]===2) {
 					fpm[2] = 3;
@@ -101,12 +107,12 @@
 				}
 				break;
 			case 4:
-				fpm[4] =  is_ifeast() ? 50 : 20;
+				fpm[4] =  is_ifeast(params) ? 50 : 20;
 				break;
 			case 8:
 				if (fpm[14]===2) {
 					fpm[8] = 6;
-				} else if (is_ifeast()) {
+				} else if (is_ifeast(params)) {
 					fpm[8] = 8;
 				} else {
 					fpm[8] = 16;
@@ -115,33 +121,33 @@
 			case 15:
 				if (fpm[14]===2) {
 					fpm[15] = 1;
-				} else if (is_complexsym()) {
+				} else if (is_complexsym(params)) {
 					fpm[15] = 2;
 				} else {
 					fpm[15] = 0;
 				}
 				break;
 			case 16:
-				fpm[16] = (is_ifeast() || is_complexsym()) ? 1 : 0;
+				fpm[16] = (is_ifeast(params) || is_complexsym(params)) ? 1 : 0;
 				break;
 			case 18:
-				fpm[18] = ((!is_ifeast() && params.prob_type !== 'pev') && (is_hermitian() || (params.data_type === d && params.symmetry === 's'))) ? 30 : 100;
+				fpm[18] = ((!is_ifeast(params) && params.prob_type !== 'pev') && (is_hermitian(params) || (params.data_type === d && params.symmetry === 's'))) ? 30 : 100;
 				break;
 			default:
 				break;
 		}
 	}
 
-	function is_ifeast() {
-		return (params.algorithm === 'inexact' || params.algorithm === 'both');
+	function is_ifeast(parameters) {
+		return (parameters.algorithm === 'inexact' || parameters.algorithm === 'both');
 	}
 
-	function is_complexsym() {
-		return (params.data_type === 'z' && params.symmetry === 's');
+	function is_complexsym(parameters) {
+		return (parameters.data_type === 'z' && parameters.symmetry === 's');
 	}
 
-	function is_hermitian() {
-		return (params.symmetry === 's' || params.symmetry === 'h');
+	function is_hermitian(parameters) {
+		return (parameters.symmetry === 's' || parameters.symmetry === 'h');
 	}
 
 	function is_real(parameters) {
@@ -384,183 +390,239 @@
 
 	<div class="container">
 
-		<h2 class="title is-4">
-			Runtime Options (<span class="is-family-code">fpm</span>)
-		</h2>
+		<div class="columns is-mobile">
+			<div class="column is-10">
+				<h2 class="title is-4">
+					Runtime Options (<span class="is-family-code">fpm</span>)
+				</h2>
+			</div>
+			<div class="column is-small">
+				<button class="button is-fullwidth" on:click="{() => runtime_visable = !runtime_visable}">
+					<span>{runtime_visable ? "Hide" : "Show"}</span>
+					<span class="icon is-small">
+						<i class="arrow {runtime_visable ? 'up' : 'down'}" aria-hidden="true"></i>
+					</span>
+				</button>
+			</div>
+		</div>
 
-		<!-- fpm 1 -->
-		<FPMSelect bind:value={fpm[1]} fpmIndex={1}
-		 description="Print runtime comments on screen">
-			<option value={0}>No</option>
-			<option value={1}>Yes</option>
-		</FPMSelect>
+		{#if runtime_visable}
+			<div transition:slide>
+			<!-- fpm 1 -->
+			<FPMSelect bind:value={fpm[1]} fpmIndex={1}
+				description="Print runtime comments on screen">
+				<option value={0}>No</option>
+				<option value={1}>Yes</option>
+			</FPMSelect>
 
 
-		<!-- fpm 3  -->
-		<FPMInteger bind:value={fpm[3]} fpmIndex={3} min=0 max=16
-		 description="Stopping convergence criteria for double precision (&epsilon = <var>10<sup>-<i>x</i></sup></var>)"/>
+			<!-- fpm 3  -->
+			<FPMInteger bind:value={fpm[3]} fpmIndex={3} min=0 max=16
+				description="Stopping convergence criteria for double precision (&epsilon = <var>10<sup>-<i>x</i></sup></var>)"/>
 
-		<!-- fpm 4 -->
-		<FPMInteger bind:value={fpm[4]} fpmIndex={4} min={0}
-		 description="Maximum number of FEAST refinement iterations"/>
+			<!-- fpm 4 -->
+			<FPMInteger bind:value={fpm[4]} fpmIndex={4} min={0}
+				description="Maximum number of FEAST refinement iterations"/>
 
-		<!-- fpm 5 -->
-		<FPMSelect bind:value={fpm[5]} fpmIndex={5}
-		 description="Provide initial guess subspace">
-			<option value={0}>No</option>
-			<option value={1}>Yes</option>
-		</FPMSelect>
+			<!-- fpm 5 -->
+			<FPMSelect bind:value={fpm[5]} fpmIndex={5}
+				description="Provide initial guess subspace">
+				<option value={0}>No</option>
+				<option value={1}>Yes</option>
+			</FPMSelect>
 
-		<!-- fpm 6 -->
-		<FPMSelect bind:value={fpm[6]} fpmIndex={6}
-		 description="Convergence criteria for eigenpairs in the search interval">
-			<option value={1}>Relative Residual</option>
-			<option value={0}>Relative Trace</option>
-		</FPMSelect>
+			<!-- fpm 6 -->
+			<FPMSelect bind:value={fpm[6]} fpmIndex={6}
+				description="Convergence criteria for eigenpairs in the search interval">
+				<option value={1}>Relative Residual</option>
+				<option value={0}>Relative Trace</option>
+			</FPMSelect>
 
-		<!-- fpm 7 DEPRECIATED IN 4.0 -->
-		<!-- {#if is_single_prec(params)}
-		<FPMInteger bind:value={fpm[7]} fpmIndex={7}
-		 description="Stopping convergence criteria for single precision (&epsilon = <var>10<sup>-<i>x</i></sup></var>) - depreciated in 4.0"/>
-		{/if} -->
+			<!-- fpm 7 DEPRECIATED IN 4.0 -->
+			<!-- {#if is_single_prec(params)}
+			<FPMInteger bind:value={fpm[7]} fpmIndex={7}
+				description="Stopping convergence criteria for single precision (&epsilon = <var>10<sup>-<i>x</i></sup></var>) - depreciated in 4.0"/>
+			{/if} -->
 
-		<!-- fpm 9 -->
-		<!-- <FPMSelect bind:value={fpm[9]} fpmIndex={9} nonum={true}
-		description="Used to set user defined MPI communicator">
-			<option value={'MPI_COMM_WORLD'}>MPI_COMM_WORLD</option>
-			<option value={'USER_DEFINED'}>USER_DEFINED</option>
-		</FPMSelect> -->
+			<!-- fpm 9 -->
+			<!-- <FPMSelect bind:value={fpm[9]} fpmIndex={9} nonum={true}
+			description="Used to set user defined MPI communicator">
+				<option value={'MPI_COMM_WORLD'}>MPI_COMM_WORLD</option>
+				<option value={'USER_DEFINED'}>USER_DEFINED</option>
+			</FPMSelect> -->
 
-		<!-- fpm 10 -->
-		<FPMSelect bind:value={fpm[10]} fpmIndex={10}
-		disabled="{params.storage_format === 'rci' || null}"
-		description="Store factorizations with the predefined interfaces">
-			<option value={0}>No</option>
-			<option value={1}>Yes</option>
-		</FPMSelect>
+			<!-- fpm 10 -->
+			<FPMSelect bind:value={fpm[10]} fpmIndex={10}
+			disabled="{params.storage_format === 'rci' || null}"
+			description="Store factorizations with the predefined interfaces">
+				<option value={0}>No</option>
+				<option value={1}>Yes</option>
+			</FPMSelect>
 
-		<!-- fpm 14 -->
-		<FPMSelect bind:value={fpm[14]} fpmIndex={14}
-		 on:change="{() => {fpm_set_default_fpm(2); fpm_set_default_fpm(8); fpm_set_default_fpm(15)}}"
-		 description="Modes: Standard, subspace Q after 1 contour, or stochastic estimate eigval count">
-			<option value={0}>Standard</option>
-			<option value={1}>Subspace</option>
-			<option value={2}>Stochastic</option>
-		</FPMSelect>
+			<!-- fpm 14 -->
+			<FPMSelect bind:value={fpm[14]} fpmIndex={14}
+				on:change="{() => {fpm_set_default_fpm(2); fpm_set_default_fpm(8); fpm_set_default_fpm(15)}}"
+				description="Modes: Standard, subspace Q after 1 contour, or stochastic estimate eigval count">
+				<option value={0}>Standard</option>
+				<option value={1}>Subspace</option>
+				<option value={2}>Stochastic</option>
+			</FPMSelect>
+			</div>
+		{:else}
+			<hr class="dotted"/>
+		{/if}
 
-		<h2 class="title is-4">
-			Integration Options (<span class="is-family-code">fpm</span>)
-		</h2>
+		<div class="columns is-mobile">
+			<div class="column is-10">
+				<h2 class="title is-4">
+					Integration Options (<span class="is-family-code">fpm</span>)
+				</h2>
+			</div>
+			<div class="column is-small">
+				<button class="button is-fullwidth has-dropdown" on:click="{() => contour_visable = !contour_visable}">
+					<span class="has-text-left">{contour_visable ? "Hide" : "Show"}</span>
+					<span class="icon is-small">
+						<i class="arrow {contour_visable ? 'up' : 'down'}" aria-hidden="true"></i>
+					</span>
+				</button>
+			</div>
+		</div>
 
-		<!-- fpm 16 -->
-		<FPMSelect bind:value={fpm[16]} fpmIndex={16}
-		description="Integration quadrature type (Zolotarev for Hermitian only)">
-			<option value={0}>Gauss</option>
-			<option value={1}>Trapezoidal</option>
-			<option value={2} disabled={!is_real(params) || null}>Zolotarev</option>
-		</FPMSelect>
-
-		<!-- fpm 17 DEPRECIATED IN 4.0 -->
-		<!-- {#if !is_hermitian()}
-			<FPMSelect bind:value={fpm[17]} fpmIndex={17}
-			description="Integration quadrature type (non-Hermitian only, full contour) DEPRECIATED IN 4.0">
+		{#if contour_visable}
+			<div transition:slide>
+			<!-- fpm 16 -->
+			<FPMSelect bind:value={fpm[16]} fpmIndex={16}		 
+			on:change="{() => {fpm_set_default_fpm(2); fpm_set_default_fpm(8)}}"
+			description="Integration quadrature type (Zolotarev for Hermitian only)">
 				<option value={0}>Gauss</option>
 				<option value={1}>Trapezoidal</option>
+				<option value={2} disabled={!is_real(params) || null}>Zolotarev</option>
 			</FPMSelect>
-		{/if} -->
 
-		<!-- fpm 2 -->
-		{#if is_hermitian()}
+			<!-- fpm 17 DEPRECIATED IN 4.0 -->
+			<!-- {#if !is_hermitian(params)}
+				<FPMSelect bind:value={fpm[17]} fpmIndex={17}
+				description="Integration quadrature type (non-Hermitian only, full contour) DEPRECIATED IN 4.0">
+					<option value={0}>Gauss</option>
+					<option value={1}>Trapezoidal</option>
+				</FPMSelect>
+			{/if} -->
+
+			<!-- fpm 2 -->
 			{#if fpm[16]===1}
 				<FPMInteger bind:value={fpm[2]} fpmIndex={2} min=1
+					disabled={!is_hermitian(params) || null}
 					description="Number of contour points (Hermitian only, half contour)"/>
 			{:else}
 				<FPMSelect bind:value={fpm[2]} fpmIndex={2}
+					disabled={!is_hermitian(params) || null}
 					description="Number of contour points (Hermitian only, half contour)">
 					{#each [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,24,32,40,48,56] as points}
 					<option value={points}>{points}</option>
 					{/each}
 				</FPMSelect>
 			{/if}
-		{/if}
+		
 
-		<!-- fpm 8 -->
-		{#if !is_hermitian()}
+			<!-- fpm 8 -->
 			{#if fpm[16]===1}
 				<FPMInteger bind:value={fpm[8]} fpmIndex={8} min=2
+					disabled={is_hermitian(params) || null}
 					description="Number of contour points (non-Hermitian only, full contour)"/>
 			{:else}
 				<FPMSelect bind:value={fpm[8]} fpmIndex={8}
+					disabled={is_hermitian(params) || null}
 					description="Number of contour points (non-Hermitian only, full contour)">
 					{#each [2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,48,64,80,96,112] as points}
 					<option value={points}>{points}</option>
 					{/each}
 				</FPMSelect>
 			{/if}
-		{/if}
 
-		<!-- fpm 15 -->
-		{#if !is_hermitian()}
-				<FPMSelect bind:value={fpm[15]} fpmIndex={15}
-					description="Contour scheme for non Hermitian problem (CS - complex symmetric)">
-					<option value={0}>Two-sided</option>
-					<option value={1}>One-sided</option>
-					<option value={0}>One-sided CS</option>
-				</FPMSelect>
-		{/if}
+			<!-- fpm 15 -->
+			<FPMSelect bind:value={fpm[15]} fpmIndex={15}
+				disabled={!is_hermitian(params) || null}
+				description="Contour scheme for non Hermitian problem (CS - complex symmetric)">
+				<option value={0}>Two-sided</option>
+				<option value={1}>One-sided</option>
+				<option value={0}>One-sided CS</option>
+			</FPMSelect>
 
-		<!-- fpm 18 -->
-		<FPMInteger bind:value={fpm[18]} fpmIndex={18} min=1 max=100
-			description="Contour elliptical ratio (scale vertically by x/100)"/>
+			<!-- fpm 18 -->
+			<FPMInteger bind:value={fpm[18]} fpmIndex={18} min=1 max=100
+				description="Contour elliptical ratio (scale vertically by x/100)"/>
 
-		<!-- fpm 19 -->
-		{#if !is_real(params)}
+			<!-- fpm 19 -->
 			<FPMInteger bind:value={fpm[19]} fpmIndex={19} min=-180 max=180
+				disabled={is_real(params) || null}
 				description="Rotate elliptical contour by x degrees (-180 <= x <= 180)"/>
+
+			</div>
+		{:else}
+			<hr class="dotted"/>
 		{/if}
 
-		<h2 class="title is-4">
-			Driver Options (<span class="is-family-code">fpm</span>)
-		</h2>
-		<!-- fpm 40 -->
-		<FPMSelect bind:value={fpm[40]} fpmIndex={40}
-		disabled="{!is_real(params) || null}"
-		description="Search interval options, set to search for largest or smallest (real) eigvals">
-			<option value={0}>Normal</option>
-			<option value={1}>Largest</option>
-			<option value={2}>Smallest</option>
-		</FPMSelect>
+		<div class="columns is-mobile">
+			<div class="column is-10">
+				<h2 class="title is-4">
+					Driver Options (<span class="is-family-code">fpm</span>)
+				</h2>
+			</div>
+			<div class="column is-small">
+				<button class="button is-fullwidth has-dropdown" on:click="{() => driver_visable = !driver_visable}">
+					<span class="has-text-left">{driver_visable ? "Hide" : "Show"}</span>
+					<span class="icon is-small">
+						<i class="arrow {driver_visable ? 'up' : 'down'}" aria-hidden="true"></i>
+					</span>
+				</button>
+			</div>
+		</div>
 
-		<!-- fpm 41 -->
-		<FPMSelect bind:value={fpm[41]} fpmIndex={41}
-		disabled="{!is_sparse(params) || null}"
-		description="Scale matrix (sparse only)">
-			<option value={0}>No</option>
-			<option value={1}>Yes</option>
-		</FPMSelect>
+		{#if driver_visable}
+			<div transition:slide>
+			<!-- fpm 40 -->
+			<FPMSelect bind:value={fpm[40]} fpmIndex={40}
+			disabled="{!is_real(params) || null}"
+			description="Search interval options, set to search for largest or smallest (real) eigvals">
+				<option value={0}>Normal</option>
+				<option value={1}>Largest</option>
+				<option value={2}>Smallest</option>
+			</FPMSelect>
 
-		<!-- fpm 42 -->
-		<FPMSelect bind:value={fpm[42]} fpmIndex={42}
-		description="Mixed or full precision (internally)">
-			<option value={0}>Full</option>
-			<option value={1}>Mixed</option>
-		</FPMSelect>
+			<!-- fpm 41 -->
+			<FPMSelect bind:value={fpm[41]} fpmIndex={41}
+			disabled="{!is_sparse(params) || null}"
+			description="Scale matrix (sparse only)">
+				<option value={0}>No</option>
+				<option value={1}>Yes</option>
+			</FPMSelect>
 
-		<!-- fpm 43 -->
-		<FPMSelect bind:value={fpm[43]} fpmIndex={43}
-		disabled="{!is_sparse(params) || null}"
-		description="Set to use IFEAST solver with old FEAST interface (sparse only)">
-			<option value={0}>FEAST</option>
-			<option value={1}>IFEAST</option>
-		</FPMSelect>
+			<!-- fpm 42 -->
+			<FPMSelect bind:value={fpm[42]} fpmIndex={42}
+			description="Mixed or full precision (internally)">
+				<option value={0}>Full</option>
+				<option value={1}>Mixed</option>
+			</FPMSelect>
 
-		<!-- fpm 45 -->
-		<FPMInteger bind:value={fpm[45]} fpmIndex={45} min=0 max=10 disabled="{!is_ifeast() || null}"
-			description="Accuracy of iterative solver 10^-x (IFEAST only)"/>
+			<!-- fpm 43 -->
+			<FPMSelect bind:value={fpm[43]} fpmIndex={43}
+			disabled="{!is_sparse(params) || null}"
+			description="Set to use IFEAST solver with old FEAST interface (sparse only)">
+				<option value={0}>FEAST</option>
+				<option value={1}>IFEAST</option>
+			</FPMSelect>
 
-		<!-- fpm 46 -->
-		<FPMInteger bind:value={fpm[46]} fpmIndex={46} min=1 disabled="{!is_ifeast() || null}"
-			description="Maximum iterations of inner iterative system solver (IFEAST only)"/>
+			<!-- fpm 45 -->
+			<FPMInteger bind:value={fpm[45]} fpmIndex={45} min=0 max=10 disabled="{!is_ifeast(params) || null}"
+				description="Accuracy of iterative solver 10^-x (IFEAST only)"/>
+
+			<!-- fpm 46 -->
+			<FPMInteger bind:value={fpm[46]} fpmIndex={46} min=1 disabled="{!is_ifeast(params) || null}"
+				description="Maximum iterations of inner iterative system solver (IFEAST only)"/>
+			</div>
+		{:else}
+			<hr class="dotted"/>
+		{/if}
 
 		<div class="columns">
 			<div class="column control">

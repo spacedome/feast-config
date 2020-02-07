@@ -28,9 +28,14 @@ $info: $color-bright;
 $dark: $color-input;
 $text: $color-text;
 
+$table-background-color: $color-input;
+$table-striped-row-even-background-color: #E9E9E9;
+$table-cell-border: 1px solid $color-back;
+
 $footer-background-color: $color-back;
 $body-background-color: $color-back;
 
+$button-background-color: $color-input;
 
 $widescreen-enabled: false;
 $fullhd-enabled: false;
@@ -64,7 +69,8 @@ $body-overflow-x: "scroll";
 @import "../node_modules/bulma/sass/utilities/_all.sass";
 @import "../node_modules/bulma/sass/base/_all.sass";
 @import "../node_modules/bulma/sass/elements/table.sass";
-// @import "../node_modules/bulma/sass/elements/button.sass";
+@import "../node_modules/bulma/sass/elements/button.sass";
+// @import "../node_modules/bulma/sass/elements/icon.sass";
 @import "../node_modules/bulma/sass/elements/notification.sass";
 @import "../node_modules/bulma/sass/elements/container.sass";
 @import "../node_modules/bulma/sass/elements/box.sass";
@@ -73,6 +79,7 @@ $body-overflow-x: "scroll";
 @import "../node_modules/bulma/sass/grid/columns.sass";
 @import "../node_modules/bulma/sass/layout/section.sass";
 @import "../node_modules/bulma/sass/layout/footer.sass";
+// @import "../node_modules/bulma/sass/components/dropdown.sass";
 
 div.container:not(:first-child) {
     padding-bottom: 2em;
@@ -86,3 +93,64 @@ img {
     min-width: 100px;
     min-height: 100px
 }
+
+i.arrow {
+    border: 3px solid transparent;
+    padding: 3px;
+    border-color:#C04848;
+    right: 1.125em;
+    z-index: 4;
+    border-radius: 2px;
+    border-right: 0;
+    border-right-color: currentcolor;
+    border-top: 0;
+    border-top-color: currentcolor;
+    content: " ";
+    display: block;
+    height: 0.625em;
+    margin-top: -0.4375em;
+    pointer-events: none;
+    position: absolute;
+    top: 50%;
+    transform-origin: center;
+    width: 0.625em;
+  }
+
+.down {
+    transform: rotate(-45deg);
+}
+
+.up {
+    transform: rotate(135deg);
+}
+
+hr.dotted {
+    border-top: 2px dashed $color-input;
+    background-color: $color-back;
+}
+
+button.button {
+    justify-content: left;
+}
+
+hr {
+    background-color: $color-input;
+}
+
+.select.disabled:not(.is-multiple):not(.is-loading)::after {
+    border-color: #AAAAAA;
+}
+
+.input[disabled], .textarea[disabled], .select select[disabled], fieldset[disabled] .input, fieldset[disabled] .textarea, fieldset[disabled] .select select, .select fieldset[disabled] select {
+    background-color: #D5D5D5;
+    border-color: #D0D0D0;
+}
+
+p.disabled {
+    background-color: #D5D5D5;
+    color: #7a7a7a;
+}
+
+// h1.title {
+//     font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+// }

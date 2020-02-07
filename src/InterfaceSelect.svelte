@@ -9,7 +9,7 @@
     <div class="column is-one-quarter">
         <div class="field">
             <p class="control is-expanded">
-                <span class={"select is-fullwidth " + state} >
+                <span class={"select is-fullwidth" + (disabled ? " disabled " : " ") + state} >
                     <select bind:value={value} disabled={disabled} on:change>
                         <slot></slot>
                     </select>
@@ -18,6 +18,6 @@
         </div>
     </div>
     <div class="column">
-        <p class="box">{description}</p>
+        <p class={"box" + (disabled ? " disabled" : "")}>{description}</p>
     </div>
 </div>

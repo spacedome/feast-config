@@ -18,9 +18,9 @@
         </div>
     </div>
     <div class="column is-small is-2">
-        <p class="box is-family-code has-text-centered is-size-6">fpm({fpmIndex})={value}</p>
+        <p class={"box is-family-code has-text-centered is-size-6" + (disabled ? " disabled" : "")}>fpm({fpmIndex})={value}</p>
     </div>
     <div class="column">
-        <p class="box">{@html description}</p>
+        <p class={"box" + (disabled ? " disabled" : "")}>{@html description}</p>
     </div>
 </div>
