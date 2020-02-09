@@ -4,7 +4,7 @@
     export let probType='ev';
     export let expert=false;
 
-    $: dtype = (dataType === 'd' ? "double" : complex);
+    $: dtype = (dataType === 'd' ? "double" : "complex");
     $: E = (real ? "double" : "complex") + "(M0)";
     $: X = (real ? "double" : "complex") + (probType === 'gv' ? "(N,2*M0)" : "(N,M0)");
     $: res = "double" + (probType === 'gv' ? "(2*M0)" : "(M0)");
