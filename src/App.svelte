@@ -43,7 +43,7 @@
 		// 17: 1, // non-hermitian integration type, 0: gauss, 1:trapezoid DEPRECIATED
 		18: 30, // contour ratio (x >= 0) ACTUAL DEFAULT IS 100 - but inital state should be 30 !!!
 		19: 0, // contour rotation angle (-180 <= x <= 180)
-		40: 0, // search interval options, 0: normal feast, 1: largest eigvals, 2: smallest eigvals
+		40: 0, // search interval options, 0: normal feast, 1: largest eigvals, -1: smallest eigvals
 		41: 1, // scale matrix, 0: no, 1: yes
 		42: 1, // mixed precision, 0: full prec, 1: mixed
 		43: 0, // switch sparse to sparse_iterative, 0: feast, 1: ifeast (sparse only)
@@ -167,6 +167,9 @@
 	}
 
 	function fpm_set_default_param() {
+		if (params.storage_format === 'rci' && params.prob_type === 'pev') {
+			params.data_type = 'z';
+		}
 		fpm = fpm_default(params, fpm);
 	}
 
@@ -332,8 +335,9 @@
 
 		 <!-- data type -->
 		<InterfaceSelect bind:value={params.data_type}
+		 on:change="{() => fpm_set_default_param()}"
 		 description="Matrix data type">
-			<option value="{'d'}">Double Precision (d)</option>
+			<option value="{'d'}" disabled="{(params.storage_format === 'rci' && params.prob_type === 'pev') || null}">Double Precision (d)</option>
 			<!-- <option value="{'s'}">Single Precision (s)</option> -->
 			<option value="{'z'}">Complex Double (z)</option>
 			<!-- <option value="{'c'}">Complex Single (c)</option> -->
@@ -586,7 +590,7 @@
 			description="Search interval options, set to search for largest or smallest (real) eigvals">
 				<option value={0}>Normal</option>
 				<option value={1}>Largest</option>
-				<option value={2}>Smallest</option>
+				<option value={-1}>Smallest</option>
 			</FPMSelect>
 
 			<!-- fpm 41 -->
@@ -631,7 +635,7 @@
 			</div>
 		</div>
 
-		<InterfaceTable dataType={params.data_type} real={is_real(params)} probType={params.prob_type} expert={params.expert}/>
+		<InterfaceTable dataType={params.data_type} real={is_real(params)} probType={params.prob_type} expert={params.expert} storageFormat={params.storage_format}/>
 
 	</div>
 
