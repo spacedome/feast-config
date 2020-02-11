@@ -39,7 +39,7 @@
 		10: 1, // store factorizations with predefined interfaces 0: no, 1 : yes
 		16: 0, // hermitian integration type, 0: gauss, 1:trapezoid, 2: zolotarev
 		14: 0, // estimate, 0: normal feast, 1: return subspace Q after est, 2: stochastic estimate
-		15: 0, // NH contour scheme, 0: two sided, 1: one sided, 2: one sided complex symmetric
+		15: 2, // NH contour scheme, 0: two sided, 1: one sided, 2: one sided left = right^*
 		// 17: 1, // non-hermitian integration type, 0: gauss, 1:trapezoid DEPRECIATED
 		18: 30, // contour ratio (x >= 0) ACTUAL DEFAULT IS 100 - but inital state should be 30 !!!
 		19: 0, // contour rotation angle (-180 <= x <= 180)
@@ -80,8 +80,10 @@
 			defaults[16] = 1;
 		}
 		if (parameters.data_type === 'z' && parameters.symmetry === 's') {
-			defaults[15] = 2;
 			defaults[16] = 1;
+		}
+		if (parameters.symmetry === 's' || parameters.symmetry === 'h') {
+			defaults[15] = 2;
 		}
 		if (fparam[14] == 2) {
 			defaults[8] = 6;
@@ -121,7 +123,7 @@
 			case 15:
 				if (fpm[14]===2) {
 					fpm[15] = 1;
-				} else if (is_complexsym(params)) {
+				} else if (params.symmetry === 's' || params.symmetry === 'h') {
 					fpm[15] = 2;
 				} else {
 					fpm[15] = 0;
@@ -397,7 +399,7 @@
 		<div class="columns is-mobile">
 			<div class="column is-10">
 				<h2 class="title is-4">
-					Runtime Options (<span class="is-family-code">fpm</span>)
+					Runtime Options
 				</h2>
 			</div>
 			<div class="column is-small">
@@ -479,7 +481,7 @@
 		<div class="columns is-mobile">
 			<div class="column is-10">
 				<h2 class="title is-4">
-					Integration Options (<span class="is-family-code">fpm</span>)
+					Integration Options
 				</h2>
 			</div>
 			<div class="column is-small">
@@ -546,10 +548,10 @@
 			<!-- fpm 15 -->
 			<FPMSelect bind:value={fpm[15]} fpmIndex={15}
 				disabled={!is_hermitian(params) || null}
-				description="Contour scheme for non Hermitian problem (CS - complex symmetric)">
+				description="Contour scheme for non Hermitian problem (One-sided Symmetric - left = right* eigenvector)">
 				<option value={0}>Two-sided</option>
 				<option value={1}>One-sided</option>
-				<option value={0}>One-sided CS</option>
+				<option value={2}>One-sided Sym</option>
 			</FPMSelect>
 
 			<!-- fpm 18 -->
@@ -569,7 +571,7 @@
 		<div class="columns is-mobile">
 			<div class="column is-10">
 				<h2 class="title is-4">
-					Driver Options (<span class="is-family-code">fpm</span>)
+					Driver Options
 				</h2>
 			</div>
 			<div class="column is-small">
@@ -643,8 +645,9 @@
 
 <footer class="footer">
 	<div class="content has-text-centered">
+	<p>If you find any bugs, or have suggestions, please send an email or open an issue on <a href="https://github.com/spacedome/feast-config">github</a>.</p>
     <p>
-      <a href="https://github.com/spacedome/feast-config">github</a> &middot 2020
+      Julien Brenneck &middot 2020
     </p>
   </div>
 </footer>
