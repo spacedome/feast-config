@@ -82,8 +82,10 @@
 		if (parameters.data_type === 'z' && parameters.symmetry === 's') {
 			defaults[16] = 1;
 		}
-		if (parameters.symmetry === 's' || parameters.symmetry === 'h') {
+		if (parameters.symmetry === 's') {
 			defaults[15] = 2;
+		} else {
+			defaults[15] = 0;
 		}
 		if (fparam[14] == 2) {
 			defaults[8] = 6;
@@ -123,7 +125,7 @@
 			case 15:
 				if (fpm[14]===2) {
 					fpm[15] = 1;
-				} else if (params.symmetry === 's' || params.symmetry === 'h') {
+				} else if (params.symmetry === 's') {
 					fpm[15] = 2;
 				} else {
 					fpm[15] = 0;
