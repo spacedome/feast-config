@@ -311,10 +311,13 @@
 					Configure FEAST interface before input parameters.
 					Currently only supports version 4.0.
 				</p>
+				<p>
+					Configurator version 4.0.0 - February 12th 2020. 
+				</p>
 			</div>
 			<div class="column is-2">
 				<figure class="image is-square logo">
-				  <img src="/FEAST.svg" alt="FEAST">
+				  <img src="FEAST.svg" alt="FEAST">
 				</figure>
 			</div>
 		</div>
