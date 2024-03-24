@@ -1,0 +1,88 @@
+/* Write your global styles here, in SCSS syntax. Variables and mixins from the src/variables.scss file are available here without importing */ /* Import only what you need from Bulma */
+
+@import "bulma/sass/utilities/_all";
+
+@import "bulma/sass/base/_all";
+
+@import "bulma/sass/elements/_all";
+
+@import "bulma/sass/form/_all";
+
+@import "bulma/sass/components/_all";
+
+@import "bulma/sass/grid/_all";
+
+@import "bulma/sass/helpers/_all";
+
+@import "bulma/sass/layout/_all";
+
+
+div.container:not(:first-child) {
+    padding-bottom: 2em;
+}
+
+div.column:last-child {
+    padding-right: 0;
+}
+
+img {
+    min-width: 100px;
+    min-height: 100px
+}
+
+i.arrow {
+    border: 3px solid transparent;
+    padding: 3px;
+    border-color:#C04848;
+    right: 1.125em;
+    z-index: 4;
+    border-radius: 2px;
+    border-right: 0;
+    border-right-color: currentcolor;
+    border-top: 0;
+    border-top-color: currentcolor;
+    content: " ";
+    display: block;
+    height: 0.625em;
+    margin-top: -0.4375em;
+    pointer-events: none;
+    position: absolute;
+    top: 50%;
+    transform-origin: center;
+    width: 0.625em;
+  }
+
+.down {
+    transform: rotate(-45deg);
+}
+
+.up {
+    transform: rotate(135deg);
+}
+
+hr.dotted {
+    border-top: 2px dashed $color-input;
+    background-color: $color-back;
+}
+
+button.button {
+    justify-content: left;
+}
+
+hr {
+    background-color: $color-input;
+}
+
+.select.disabled:not(.is-multiple):not(.is-loading)::after {
+    border-color: #AAAAAA;
+}
+
+.input[disabled], .textarea[disabled], .select select[disabled], fieldset[disabled] .input, fieldset[disabled] .textarea, fieldset[disabled] .select select, .select fieldset[disabled] select {
+    background-color: #D5D5D5;
+    border-color: #D0D0D0;
+}
+
+p.disabled {
+    background-color: #D5D5D5;
+    color: #7a7a7a;
+}
