@@ -1,0 +1,44 @@
+/* Variables and mixins declared here will be available in all other SCSS files */ /* https://github.com/jgthms/bulma/issues/1293 */
+$body-overflow-y: auto;
+
+$color-back: #DDDDDD;
+$color-bright: #C04848;
+$color-input: #EEEEEE;
+$color-text: #300030;
+
+$input-color: $color-text;
+$input-background-color: $color-input;
+$box-background-color: $color-input;
+
+$title-color: $color-bright;
+
+$primary: $color-back;
+$link: $color-bright;
+$info: $color-bright;
+$dark: $color-input;
+$text: $color-text;
+
+$table-background-color: $color-input;
+$table-striped-row-even-background-color: #E9E9E9;
+$table-cell-border: 1px solid $color-back;
+
+$footer-background-color: $color-back;
+$body-background-color: $color-back;
+
+$button-background-color: $color-input;
+
+$widescreen-enabled: false;
+$fullhd-enabled: false;
+
+$control-border-width: 2px;
+$input-border-color: transparent;
+$input-shadow: none;
+$box-shadow: none;
+$box-padding: 0.5em 0.75em 0.5em;
+$box-radius: 4px;
+$column-gap: 0.4rem 0.8rem 0.4rem 0;
+
+
+$body-min-width: 920px;
+$body-overflow-x: "scroll";
+

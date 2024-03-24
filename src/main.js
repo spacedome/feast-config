@@ -1,10 +1,9 @@
-import App from './App.svelte';
+import "./app.scss";
+import App from "./App.svelte";
 
 const app = new App({
-	target: document.body,
-	props: {
-		name: 'FEAST Configurator'
-	}
+  target: document.getElementById("app"),
+  props: { name: "FEAST Configurator" },
 });
 
 export default app;
