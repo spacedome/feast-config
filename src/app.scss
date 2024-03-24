@@ -16,73 +16,78 @@
 
 @import "bulma/sass/layout/_all";
 
-
 div.container:not(:first-child) {
-    padding-bottom: 2em;
+  padding-bottom: 2em;
 }
 
 div.column:last-child {
-    padding-right: 0;
+  padding-right: 0;
 }
 
 img {
-    min-width: 100px;
-    min-height: 100px
+  min-width: 100px;
+  min-height: 100px;
 }
 
 i.arrow {
-    border: 3px solid transparent;
-    padding: 3px;
-    border-color:#C04848;
-    right: 1.125em;
-    z-index: 4;
-    border-radius: 2px;
-    border-right: 0;
-    border-right-color: currentcolor;
-    border-top: 0;
-    border-top-color: currentcolor;
-    content: " ";
-    display: block;
-    height: 0.625em;
-    margin-top: -0.4375em;
-    pointer-events: none;
-    position: absolute;
-    top: 50%;
-    transform-origin: center;
-    width: 0.625em;
-  }
+  border: 3px solid transparent;
+  padding: 3px;
+  border-color: #c04848;
+  right: 1.125em;
+  z-index: 4;
+  border-radius: 2px;
+  border-right: 0;
+  border-right-color: currentcolor;
+  border-top: 0;
+  border-top-color: currentcolor;
+  content: " ";
+  display: block;
+  height: 0.625em;
+  margin-top: -0.4375em;
+  pointer-events: none;
+  position: absolute;
+  top: 50%;
+  transform-origin: center;
+  width: 0.625em;
+}
 
 .down {
-    transform: rotate(-45deg);
+  transform: rotate(-45deg);
 }
 
 .up {
-    transform: rotate(135deg);
+  transform: rotate(135deg);
 }
 
 hr.dotted {
-    border-top: 2px dashed $color-input;
-    background-color: $color-back;
+  border-top: 2px dashed $color-input;
+  background-color: $color-back;
 }
 
 button.button {
-    justify-content: left;
+  justify-content: left;
 }
 
 hr {
-    background-color: $color-input;
+  background-color: $color-input;
 }
 
 .select.disabled:not(.is-multiple):not(.is-loading)::after {
-    border-color: #AAAAAA;
+  border-color: #aaaaaa;
 }
 
-.input[disabled], .textarea[disabled], .select select[disabled], fieldset[disabled] .input, fieldset[disabled] .textarea, fieldset[disabled] .select select, .select fieldset[disabled] select {
-    background-color: #D5D5D5;
-    border-color: #D0D0D0;
+.input[disabled],
+.textarea[disabled],
+.select select[disabled],
+fieldset[disabled] .input,
+fieldset[disabled] .textarea,
+fieldset[disabled] .select select,
+.select fieldset[disabled] select {
+  background-color: #d5d5d5;
+  border-color: #d0d0d0;
 }
 
 p.disabled {
-    background-color: #D5D5D5;
-    color: #7a7a7a;
+  background-color: #d5d5d5;
+  color: #7a7a7a;
 }
